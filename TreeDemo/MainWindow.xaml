@@ -29,6 +29,12 @@
 					</StackPanel>
 				</HierarchicalDataTemplate>
 			</TreeView.ItemTemplate>
+			<TreeView.ContextMenu>
+				<ContextMenu>
+					<MenuItem Header="全选" Tag="true" Click="menuitem_Click"></MenuItem>
+					<MenuItem Header="全不选" Tag="false" Click="menuitem_Click"></MenuItem>
+				</ContextMenu>
+			</TreeView.ContextMenu>
 		</TreeView>
 	</Grid>
 </Window>

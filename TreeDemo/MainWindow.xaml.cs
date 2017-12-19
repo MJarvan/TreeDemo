@@ -64,35 +64,35 @@ namespace TreeDemo
 			node1.Children.Add(node1tag2);
 			itemList.Add(node1);
 
-			//PropertyNodeItem node2 = new PropertyNodeItem()
-			//{
-			//	ID = 4,
-			//	FatherID = 0,
-			//	DisplayName = "Node No.2",
-			//	Name = "This is the discription of Node 2. This is a folder.",
-			//	Check = false
-			//};
+			PropertyNodeItem node2 = new PropertyNodeItem()
+			{
+				ID = 4,
+				FatherID = 0,
+				DisplayName = "Node No.2",
+				Name = "This is the discription of Node 2. This is a folder.",
+				Check = false
+			};
 
-			//PropertyNodeItem node2tag3 = new PropertyNodeItem()
-			//{
-			//	ID = 5,
-			//	FatherID = 4,
-			//	DisplayName = "Tag No.3",
-			//	Name = "This is the discription of Tag 3. This is a tag.",
-			//	Check = false
-			//};
-			//node2.Children.Add(node2tag3);
+			PropertyNodeItem node2tag3 = new PropertyNodeItem()
+			{
+				ID = 5,
+				FatherID = 4,
+				DisplayName = "Tag No.3",
+				Name = "This is the discription of Tag 3. This is a tag.",
+				Check = false
+			};
+			node2.Children.Add(node2tag3);
 
-			//PropertyNodeItem node2tag4 = new PropertyNodeItem()
-			//{
-			//	ID = 6,
-			//	FatherID = 4,
-			//	DisplayName = "Tag No.4",
-			//	Name = "This is the discription of Tag 4. This is a tag.",
-			//	Check = false
-			//};
-			//node2.Children.Add(node2tag4);
-			//itemList.Add(node2);
+			PropertyNodeItem node2tag4 = new PropertyNodeItem()
+			{
+				ID = 6,
+				FatherID = 4,
+				DisplayName = "Tag No.4",
+				Name = "This is the discription of Tag 4. This is a tag.",
+				Check = false
+			};
+			node2.Children.Add(node2tag4);
+			itemList.Add(node2);
 
 			PropertyNodeItem node1tag1tag1 = new PropertyNodeItem()
 			{
@@ -114,25 +114,25 @@ namespace TreeDemo
 			};
 			node1tag1.Children.Add(node1tag1tag2);
 
-			//PropertyNodeItem node1tag1tag1tag1 = new PropertyNodeItem()
-			//{
-			//	ID = 9,
-			//	FatherID = 7,
-			//	DisplayName = "TagTagTag No.1",
-			//	Name = "This is the discription of TagTagTag 1. This is a tag.",
-			//	Check = false
-			//};
-			//node1tag1tag1.Children.Add(node1tag1tag1tag1);
+			PropertyNodeItem node1tag1tag1tag1 = new PropertyNodeItem()
+			{
+				ID = 9,
+				FatherID = 7,
+				DisplayName = "TagTagTag No.1",
+				Name = "This is the discription of TagTagTag 1. This is a tag.",
+				Check = false
+			};
+			node1tag1tag1.Children.Add(node1tag1tag1tag1);
 
-			//PropertyNodeItem node1tag1tag1tag2 = new PropertyNodeItem()
-			//{
-			//	ID = 10,
-			//	FatherID = 7,
-			//	DisplayName = "TagTagTag No.2",
-			//	Name = "This is the discription of TagTagTag 2. This is a tag.",
-			//	Check = false
-			//};
-			//node1tag1tag1.Children.Add(node1tag1tag1tag2);
+			PropertyNodeItem node1tag1tag1tag2 = new PropertyNodeItem()
+			{
+				ID = 10,
+				FatherID = 7,
+				DisplayName = "TagTagTag No.2",
+				Name = "This is the discription of TagTagTag 2. This is a tag.",
+				Check = false
+			};
+			node1tag1tag1.Children.Add(node1tag1tag1tag2);
 
 			this.tvProperties.ItemsSource = itemList;
 		}
@@ -302,6 +302,7 @@ namespace TreeDemo
 
 			return finalcheck;
 		}
+
 		private int MiddleClickNotLast(List<PropertyNodeItem> list,PropertyNodeItem pni)
 		{
 			int brotherFID = 0;
@@ -323,6 +324,7 @@ namespace TreeDemo
 			}
 			return brotherFID;
 		}
+
 		private PropertyNodeItem SonClickFather(List<PropertyNodeItem> list,int iD,int fatherID,bool isSelected)
 		{
 
@@ -347,6 +349,81 @@ namespace TreeDemo
 			}
 
 			return returnPNI;
+		}
+
+		private void menuitem_Click(object sender,RoutedEventArgs e)
+		{
+			MenuItem menuitem = sender as MenuItem;
+			bool click = Convert.ToBoolean(menuitem.Tag);
+			if(click)
+			{
+				foreach(var item in tvProperties.Items)
+				{
+					TreeViewItem tvi = tvProperties.ItemContainerGenerator.ContainerFromItem(item) as TreeViewItem;
+					tvi.ExpandSubtree();
+					PropertyNodeItem pni = tvi.DataContext as PropertyNodeItem;
+					TVIChoiced(pni,click);
+				}
+			}
+			else
+			{
+				//foreach(var item in tvProperties.Items)
+				//{
+				//	TreeViewItem tvi = tvProperties.ItemContainerGenerator.ContainerFromItem(item) as TreeViewItem;
+				//	tvi.IsExpanded = false;
+				//	PropertyNodeItem pni = tvi.DataContext as PropertyNodeItem;
+				//	TVIChoiced(pni,click);
+				//}
+				SetNodeExpandedState(tvProperties,click);
+			}
+		}
+
+		private void TVIChoiced(PropertyNodeItem pni,bool click)
+		{
+			if(pni != null)
+			{
+				if(pni.Children.Count != 0)
+				{
+					pni.Check = click;
+
+					foreach(PropertyNodeItem chlid in pni.Children)
+					{
+						TVIChoiced(chlid,click);
+					}
+				}
+				else
+				{
+					pni.Check = click;
+				}
+			}
+		}
+
+		/// <summary>
+		/// 节点收缩
+		/// </summary>
+		/// <param name="control">TreeView控件</param>
+		/// <param name="expandNode">true:展开 false:收缩</param>
+		private void SetNodeExpandedState(ItemsControl control,bool expandNode)
+		{
+			if(control != null)
+			{
+				foreach(object item in control.Items)
+				{
+					TreeViewItem treeItem = control.ItemContainerGenerator.ContainerFromItem(item) as TreeViewItem;
+					PropertyNodeItem pni = treeItem.DataContext as PropertyNodeItem;
+					TVIChoiced(pni,expandNode);
+					if(treeItem != null && treeItem.HasItems)
+					{
+						treeItem.IsExpanded = expandNode;
+						if(treeItem.ItemContainerGenerator.Status != System.Windows.Controls.Primitives.GeneratorStatus.ContainersGenerated)
+						{
+							treeItem.UpdateLayout();
+						}
+
+						SetNodeExpandedState(treeItem as ItemsControl,expandNode);
+					}
+				}
+			}
 		}
 	}
 	internal class PropertyNodeItem:INotifyPropertyChanged
@@ -394,8 +471,7 @@ namespace TreeDemo
 		public event PropertyChangedEventHandler PropertyChanged;
 		protected internal virtual void OnPropertyChanged(string propertyName)
 		{
-			if(PropertyChanged != null)
-				PropertyChanged(this,new PropertyChangedEventArgs(propertyName));
+			PropertyChanged?.Invoke(this,new PropertyChangedEventArgs(propertyName));
 		}
 	}
 
