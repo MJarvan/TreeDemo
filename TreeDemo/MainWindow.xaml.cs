@@ -256,45 +256,36 @@ namespace TreeDemo
 			}
 			if(IsSelected == true)
 			{
-				//选中子节点同时选中父节点
 				PropertyNodeItem pni = SonClickFather(list,ID,FatherID,null);
 
-				//保持有子节点已经勾中的中间层的钩的不变
 				if(pni.Children.Count != 0)
 				{
 					pni.Check = MiddleClickLast(pni.Children,pni);
 				}
-				//保持父节点的兄弟节点选中是取消父节点而保持根节点的状态
 				else if(pni.Check == false)
 				{
 					MiddleClickNotLast(list,pni);
 				}
 				returnPNI = null;
 
-				//保持多个子节点勾中而取消一个勾中一个子节点时的根节点状态
 				KeepFather(list,pni);
 
 				AllCheck(list,null);
 			}
 			else if(IsSelected == false)
 			{
-				//选中子节点同时选中父节点
 				PropertyNodeItem pni = SonClickFather(list,ID,FatherID,IsSelected);
 
-				//保持有子节点已经勾中的中间层的钩的不变
 				if(pni.Children.Count != 0)
 				{
 					pni.Check = MiddleClickLast(pni.Children,pni);
 				}
-				//保持父节点的兄弟节点选中是取消父节点而保持根节点的状态
-				//只有true才算选中? null呢
 				else if(pni.Check == false)
 				{
 					MiddleClickNotLast(list,pni);
 				}
 				returnPNI = null;
 
-				//保持多个子节点勾中而取消一个勾中一个子节点时的根节点状态
 				//null的状态也要保持
 				KeepFather(list,pni);
 
@@ -304,6 +295,12 @@ namespace TreeDemo
 		}
 
 		int childNum = 0;
+		/// <summary>
+		/// 全部遍历符合的节点,把它的null状态变成true
+		/// </summary>
+		/// <param name="list"></param>
+		/// <param name="fatherpni"></param>
+		/// <returns></returns>
 		private bool? AllCheck(List<PropertyNodeItem> list,PropertyNodeItem fatherpni)
 		{
 			bool? returncheck = false;
@@ -337,6 +334,11 @@ namespace TreeDemo
 			return returncheck;
 		}
 
+		/// <summary>
+		/// 保持有任意子节点选中时的它的根节点状态
+		/// </summary>
+		/// <param name="list"></param>
+		/// <param name="pni"></param>
 		private void KeepFather(List<PropertyNodeItem> list,PropertyNodeItem pni)
 		{
 			List<PropertyNodeItem> fulllist = this.tvProperties.ItemsSource as List<PropertyNodeItem>;
@@ -363,6 +365,12 @@ namespace TreeDemo
 			}
 		}
 
+		/// <summary>
+		/// 保持有子节点已经勾中的中间层的钩的状态不变
+		/// </summary>
+		/// <param name="child">节点的子节点们</param>
+		/// <param name="pni">节点信息</param>
+		/// <returns></returns>
 		private bool? MiddleClickLast(List<PropertyNodeItem> child,PropertyNodeItem pni)
 		{
 			bool? finalcheck = pni.Check;
@@ -394,6 +402,12 @@ namespace TreeDemo
 			return finalcheck;
 		}
 
+		/// <summary>
+		/// 保持父节点的兄弟节点选中时,取消父节点,而保持根节点的状态
+		/// </summary>
+		/// <param name="list">数据</param>
+		/// <param name="pni">节点信息</param>
+		/// <returns></returns>
 		private int MiddleClickNotLast(List<PropertyNodeItem> list,PropertyNodeItem pni)
 		{
 			int brotherFID = 0;
@@ -421,6 +435,14 @@ namespace TreeDemo
 			return brotherFID;
 		}
 
+		/// <summary>
+		/// 选中子节点同时选中父节点
+		/// </summary>
+		/// <param name="list">实体列表</param>
+		/// <param name="iD">节点ID</param>
+		/// <param name="fatherID">节点的父节点ID</param>
+		/// <param name="isSelected">选中状态</param>
+		/// <returns></returns>
 		private PropertyNodeItem SonClickFather(List<PropertyNodeItem> list,int iD,int fatherID,bool? isSelected)
 		{
 			List<PropertyNodeItem> fulllist = this.tvProperties.ItemsSource as List<PropertyNodeItem>;
