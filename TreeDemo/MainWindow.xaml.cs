@@ -92,7 +92,7 @@ namespace TreeDemo
 				Check = false
 			};
 			node2.Children.Add(node2tag4);
-			itemList.Add(node2);
+			//itemList.Add(node2);
 
 			PropertyNodeItem node1tag1tag1 = new PropertyNodeItem()
 			{
@@ -147,19 +147,36 @@ namespace TreeDemo
 
 			if(pni.FatherID == 0)
 			{
-				cb.IsChecked = !cb.IsChecked;
+				if(cb.IsChecked == false)
+				{
+					cb.IsChecked = null;
+				}
+				else if(cb.IsChecked == null)
+				{
+					cb.IsChecked = false;
+				}
+				AllCheck(list,null);
 			}
 			else
 			{
+				//true
 				if(cb.IsChecked == true)
 				{
 					tvi.IsSelected = true;
 					CheckClickID(list,pni.ID,pni.FatherID,true);
 				}
+				//false
+				else if(cb.IsChecked == null)
+				{
+					tvi.IsSelected = false;
+					cb.IsChecked = false;
+					CheckClickID(list,pni.ID,pni.FatherID,false);
+				}
+				//null
 				else
 				{
 					tvi.IsSelected = false;
-					CheckClickID(list,pni.ID,pni.FatherID,false);
+					cb.IsChecked = null;
 				}
 			}
 		}
@@ -168,7 +185,7 @@ namespace TreeDemo
 		int realID = 0;
 		PropertyNodeItem returnPNI;
 
-		private void CheckClickID(List<PropertyNodeItem> list,int ID,int FatherID,bool IsSelected)
+		private void CheckClickID(List<PropertyNodeItem> list,int ID,int FatherID,bool? IsSelected)
 		{
 			#region 旧坑 性能高 逻辑无比困难 未实现
 
@@ -237,25 +254,87 @@ namespace TreeDemo
 			{
 				realID = ID;
 			}
-			//选中子节点同时选中父节点
-			PropertyNodeItem pni = SonClickFather(list,ID,FatherID,IsSelected);
-
-			//保持有子节点已经勾中的中间层的钩的不变
-			if(pni.Children.Count != 0)
+			if(IsSelected == true)
 			{
-				pni.Check = MiddleClickLast(pni.Children,pni);
+				//选中子节点同时选中父节点
+				PropertyNodeItem pni = SonClickFather(list,ID,FatherID,null);
+
+				//保持有子节点已经勾中的中间层的钩的不变
+				if(pni.Children.Count != 0)
+				{
+					pni.Check = MiddleClickLast(pni.Children,pni);
+				}
+				//保持父节点的兄弟节点选中是取消父节点而保持根节点的状态
+				else if(pni.Check == false)
+				{
+					MiddleClickNotLast(list,pni);
+				}
+				returnPNI = null;
+
+				//保持多个子节点勾中而取消一个勾中一个子节点时的根节点状态
+				KeepFather(list,pni);
+
+				AllCheck(list,null);
 			}
-			//保持父节点的兄弟节点选中是取消父节点而保持根节点的状态
-			else if (!pni.Check)
+			else if(IsSelected == false)
 			{
-				MiddleClickNotLast(list,pni);
+				//选中子节点同时选中父节点
+				PropertyNodeItem pni = SonClickFather(list,ID,FatherID,IsSelected);
+
+				//保持有子节点已经勾中的中间层的钩的不变
+				if(pni.Children.Count != 0)
+				{
+					pni.Check = MiddleClickLast(pni.Children,pni);
+				}
+				//保持父节点的兄弟节点选中是取消父节点而保持根节点的状态
+				//只有true才算选中? null呢
+				else if(pni.Check == false)
+				{
+					MiddleClickNotLast(list,pni);
+				}
+				returnPNI = null;
+
+				//保持多个子节点勾中而取消一个勾中一个子节点时的根节点状态
+				//null的状态也要保持
+				KeepFather(list,pni);
+
+				AllCheck(list,null);
 			}
-			returnPNI = null;
-
-			//保持多个子节点勾中而取消一个勾中一个子节点时的根节点状态
-			KeepFather(list,pni);
-
 			#endregion
+		}
+
+		int childNum = 0;
+		private bool? AllCheck(List<PropertyNodeItem> list,PropertyNodeItem fatherpni)
+		{
+			bool? returncheck = false;
+
+			if(fatherpni != null)
+			{
+				returncheck = fatherpni.Check;
+			}
+
+			//List<PropertyNodeItem> fulllist = this.tvProperties.ItemsSource as List<PropertyNodeItem>;
+			foreach(PropertyNodeItem pni in list)
+			{
+				if(pni.Children.Count != 0)
+				{
+					pni.Check = AllCheck(pni.Children,pni);
+				}
+
+				if(pni.Check == true)
+				{
+					childNum++;
+				}
+			}
+
+			if(fatherpni != null && childNum == fatherpni.Children.Count)
+			{
+				fatherpni.Check = true;
+				returncheck = true;
+			}
+			childNum = 0;
+
+			return returncheck;
 		}
 
 		private void KeepFather(List<PropertyNodeItem> list,PropertyNodeItem pni)
@@ -264,20 +343,29 @@ namespace TreeDemo
 
 			foreach(PropertyNodeItem item in list)
 			{
-				if(item.ID != pni.ID && item.FatherID == pni.FatherID && item.Check)
+				if(item.ID != pni.ID && item.Check == true)
 				{
-					SonClickFather(fulllist,pni.ID,pni.FatherID,true);
+					SonClickFather(fulllist,item.ID,item.FatherID,null);
+					return;
+				}
+				else if(item.ID != pni.ID && item.Check == null)
+				{
+					SonClickFather(fulllist,item.ID,item.FatherID,null);
+					return;
 				}
 				else
 				{
-					KeepFather(item.Children,pni);
+					if(item.Children.Count != 0)
+					{
+						KeepFather(item.Children,pni);
+					}
 				}
 			}
 		}
 
-		private bool MiddleClickLast(List<PropertyNodeItem> child,PropertyNodeItem pni)
+		private bool? MiddleClickLast(List<PropertyNodeItem> child,PropertyNodeItem pni)
 		{
-			bool finalcheck = pni.Check;
+			bool? finalcheck = pni.Check;
 
 			foreach(PropertyNodeItem self in child)
 			{
@@ -287,15 +375,18 @@ namespace TreeDemo
 				}
 				else
 				{
-					if(self.Check)
+					List<PropertyNodeItem> list = this.tvProperties.ItemsSource as List<PropertyNodeItem>;
+
+					if(self.Check == true)
 					{
-						List<PropertyNodeItem> list = this.tvProperties.ItemsSource as List<PropertyNodeItem>;
-						SonClickFather(list,pni.ID,pni.FatherID,true);
+						SonClickFather(list,pni.ID,pni.FatherID,null);
 						return true;
 					}
-					//else
+
+					//else if(self.Check == null)
 					//{
-					//	finalcheck = false;
+					//	SonClickFather(list,pni.ID,pni.FatherID,null);
+					//	return null;
 					//}
 				}
 			}
@@ -316,18 +407,22 @@ namespace TreeDemo
 				{
 					brotherFID = all.FatherID;
 				}
-				if(all.FatherID == brotherFID && all.Check)
+				if(all.FatherID == brotherFID && all.Check == true)
 				{
 					List<PropertyNodeItem> fulllist = this.tvProperties.ItemsSource as List<PropertyNodeItem>;
-					SonClickFather(fulllist,all.ID,all.FatherID,true);
+					SonClickFather(fulllist,all.ID,all.FatherID,null);
+				}
+				else if(all.FatherID == brotherFID && all.Check == null)
+				{
+					List<PropertyNodeItem> fulllist = this.tvProperties.ItemsSource as List<PropertyNodeItem>;
+					SonClickFather(fulllist,all.ID,all.FatherID,null);
 				}
 			}
 			return brotherFID;
 		}
 
-		private PropertyNodeItem SonClickFather(List<PropertyNodeItem> list,int iD,int fatherID,bool isSelected)
+		private PropertyNodeItem SonClickFather(List<PropertyNodeItem> list,int iD,int fatherID,bool? isSelected)
 		{
-
 			List<PropertyNodeItem> fulllist = this.tvProperties.ItemsSource as List<PropertyNodeItem>;
 
 			foreach(PropertyNodeItem all in list)
@@ -335,6 +430,18 @@ namespace TreeDemo
 				if(all.Children.Count != 0 && all.ID == fatherID)
 				{
 					all.Check = isSelected;
+					//if(isSelected == true)
+					//{
+					//	SonClickFather(fulllist,all.ID,all.FatherID,isSelected);
+					//}
+					//else if(isSelected == false)
+					//{
+					//	SonClickFather(fulllist,all.ID,all.FatherID,isSelected);
+					//}
+					//else if(isSelected == null)
+					//{
+					//	SonClickFather(fulllist,all.ID,all.FatherID,isSelected);
+					//}
 					SonClickFather(fulllist,all.ID,all.FatherID,isSelected);
 				}
 				else if(all.Children.Count != 0 && all.ID != fatherID)
@@ -347,7 +454,6 @@ namespace TreeDemo
 					realID = 0;
 				}
 			}
-
 			return returnPNI;
 		}
 
@@ -410,10 +516,10 @@ namespace TreeDemo
 				foreach(object item in control.Items)
 				{
 					TreeViewItem treeItem = control.ItemContainerGenerator.ContainerFromItem(item) as TreeViewItem;
-					PropertyNodeItem pni = treeItem.DataContext as PropertyNodeItem;
-					TVIChoiced(pni,expandNode);
 					if(treeItem != null && treeItem.HasItems)
 					{
+						PropertyNodeItem pni = treeItem.DataContext as PropertyNodeItem;
+						TVIChoiced(pni,expandNode);
 						treeItem.IsExpanded = expandNode;
 						if(treeItem.ItemContainerGenerator.Status != System.Windows.Controls.Primitives.GeneratorStatus.ContainersGenerated)
 						{
@@ -440,13 +546,13 @@ namespace TreeDemo
 		{
 			get; set;
 		}
-		private bool check;
+		private bool? check;
 		public string Name
 		{
 			get; set;
 		}
 
-		public bool Check
+		public bool? Check
 		{
 			get
 			{

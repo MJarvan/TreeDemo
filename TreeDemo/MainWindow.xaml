@@ -11,7 +11,7 @@
 			<TreeView.ItemTemplate>
 				<HierarchicalDataTemplate DataType="{x:Type local:PropertyNodeItem}" ItemsSource="{Binding Path=Children}">
 					<StackPanel Orientation="Horizontal">
-						<CheckBox IsChecked="{Binding Path=Check,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" IsTabStop="False" Focusable="False" HorizontalAlignment="Center" Click="CheckBox_Click">
+						<CheckBox IsChecked="{Binding Path=Check,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" IsTabStop="False" Focusable="False" HorizontalAlignment="Center" Click="CheckBox_Click" IsThreeState="True">
 							<!--<CheckBox.Resources>
 								<Style TargetType="CheckBox">
 									<Style.Triggers>
